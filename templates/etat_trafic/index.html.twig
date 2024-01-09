@@ -1,0 +1,213 @@
+{% extends 'layout_admin/layout_with_header.html.twig' %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('custom/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
+          integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+          crossorigin=""/>
+{% endblock %}
+{% block title %}Etat du trafic{% endblock %}
+{% block page_content %}
+{% for message in app.flashes('success') %}
+<div class="alert alert-success">
+    {{ message }}
+</div>
+{% endfor %}
+    <div id="map" style="height: 580px"></div>
+{% endblock %}
+{% block end_javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
+            integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg="
+            crossorigin=""></script>
+
+    <script type="text/javascript">
+
+	function toRadian(degree) {
+		return degree*Math.PI/180;
+	}
+
+	function getDistance(Origin, destination) {
+    // return distance in meters
+    var lon1 = toRadian(Origin[1]),
+        lat1 = toRadian(Origin[0]),
+        lon2 = toRadian(destination[1]),
+        lat2 = toRadian(destination[0]);
+
+    var deltaLat = lat2 - lat1;
+    var deltaLon = lon2 - lon1;
+
+    var a = Math.pow(Math.sin(deltaLat/2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(deltaLon/2), 2);
+    var c = 2 * Math.asin(Math.sqrt(a));
+    var EARTH_RADIUS = 6371;
+    return c * EARTH_RADIUS * 1000;
+	}
+        let ville = ""
+        let dataSent = ""
+        $(document).ready(function () {
+            const eventSource = new EventSource("{{ mercure('ping')|escape('js') }}");
+            eventSource.onmessage = event => {
+                // Will be called every time an update is published by the server
+                // console.log(event.data);
+                dataSent = JSON.parse(event.data);
+                let position = dataSent.position;
+                L.marker([position.latitude, position.longitude]).addTo(map).bindPopup(position.lieu).openPopup();
+            }
+
+            var map = L.map('map').setView([{{ position.latitude }}, {{ position.longitude }}], {{ position.zoom }});
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 50,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+            L.marker([{{ position.latitude }}, {{ position.longitude }}]).addTo(map).bindPopup('{{ position.lieu }}').openPopup();
+
+
+            // Gestion des champs
+            let cVille = document.getElementById('chamville');
+            cVille.addEventListener("change", function () {
+                // On envoie le requête ajax vers Nominatim
+                console.log(this.value);
+
+                ajaxGet(`https://nominatim.openstreetmap.org/search?q=${this.value}&format=json&addressdetails=1&limit=1&polygon_svg=1`)
+            .then(reponse => {
+                // On convertit la réponse en objet Javascript
+               
+                let data = JSON.parse(reponse)
+    
+                // On stocke les coordonnées dans ville
+                ville = [data[0].lat, data[0].lon]
+    
+                // On centre la carte sur la ville
+                map.panTo(ville)
+                
+            })
+    
+    
+       });
+            
+      var tab1 = [
+      		[6.175813, 1.214423],
+      		[6.175995, 1.214555],
+      		[6.175491, 1.214623],
+      		[6.175473, 1.214871],
+      		[6.175062, 1.214926],
+      		[6.174736, 1.215024],
+      		[6.174701, 1.215256],
+      		[6.174600, 1.215353],
+      		[6.174058, 1.215686],
+      		[6.173825, 1.215588],
+      		[6.173613, 1.215507],
+      		[6.173520, 1.215864],
+      		[6.173173, 1.216639],
+      		[6.173016, 1.216946],
+      		[6.172707, 1.217508],
+      		[6.172398, 1.218121],
+      		[6.172085, 1.218726],
+      		[6.171873, 1.219164],
+      		[6.171658, 1.219679],
+      		[6.171674, 1.219862],
+	  	    [6.178975, 1.215998],
+	   	    [6.180201, 1.215376],
+		    [6.181055, 1.214947],
+		    [6.180231, 1.215365],
+		    [6.184733, 1.213241],
+		    [6.188658, 1.211331]
+		];
+
+        var tab2 = [
+      		[6.166684, 1.201875],
+      		[6.167580, 1.201403],
+      		[6.168519, 1.200717],
+      		[6.169458, 1.199429],
+      		[6.169799, 1.198185],
+      		[6.170226, 1.194580],
+      		[6.170695, 1.192134],
+      		[6.172828, 1.187499],
+      		[6.174364, 1.183980]
+		];
+
+		/*Fonction pour la représentation du marqueur du centre du cercle à tracer*/
+		function point(lat, long, lieu) {
+			L.marker([lat,long]).addTo(map).bindPopup(lat+", "+long+"<br> Lieu : "+lieu).openPopup();
+		}
+
+		/*Fonction pour le tracé du trafic dans un rayon donné*/
+        function traficRayon2(rayon, centre, tab) { 
+		var circle = L.circle(centre, {
+					color: '#085f09',
+					fillColor: '#9cfc1e',
+					fillOpacity: 0.5,
+					radius: rayon
+				}).addTo(map);
+
+		for(var j = 0; j < tab.length; j++) {
+			var p3 = tab[j];
+			var p4 = tab[j+1];
+			var tabp3p4 = [p3, p4];
+			var distance = getDistance(p3, p4);
+			var vitesse = distance/10;
+			
+			if(vitesse < 3){
+				var polyline = L.polyline(tabp3p4, {color: '#fa0707', weight: 8}).addTo(map);
+			}else if(vitesse < 5){
+				var polyline = L.polyline(tabp3p4, {color: '#f8ed10', weight: 8}).addTo(map);
+			}else if(vitesse < 25){
+				var polyline = L.polyline(tabp3p4, {color: '#1e07fa', weight: 8}).addTo(map);
+			}else{
+				var polyline = L.polyline(tabp3p4, {color: '#10f821', weight: 8}).addTo(map);
+			}
+		}
+	    map.fitBounds(polyline.getBounds());
+		}
+
+		function onMapClick(e) {
+			var rayon = parseInt(prompt("Donnez le rayon en mètres : "));
+			var centre = e.latlng;
+			var latitude = e.latlng.lat;
+			var longitude = e.latlng.lng;
+			var lieu = e.title;
+			point(latitude, longitude, lieu);
+			//traficRayon2(rayon, centre, tab2);
+            traficRayon2(rayon, centre, tab1);
+			map.setView([latitude, longitude], {{ 25 }});
+		}
+
+		//alert('Nous allons vous afficher l\'état du trafic dans un rayon autour d\'un point donné');
+		alert('Veuillez cliquer pour choisir un point');
+		map.on('click', onMapClick);
+
+        });
+
+        /**
+         * Cette fonction effectue un appel Ajax vers une url et retourne une promesse
+         * @param {string} url
+         */
+
+        function ajaxGet(url) {
+            return new Promise(function (resolve, reject) {
+                // Nous allons gérer la promesse
+                let xmlhttp = new XMLHttpRequest()
+
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4) {
+                        if (xmlhttp.status == 200) {
+                            // On "résoud" la promesse
+                            resolve(xmlhttp.response)
+                        } else {
+                            reject(xmlhttp)
+                        }
+                    }
+                }
+
+                xmlhttp.onerror = function (error) {
+                    reject(error)
+                }
+
+                xmlhttp.open('get', url, true)
+                xmlhttp.send()
+            })
+        }
+
+    </script>
+
+{% endblock %}

@@ -1,0 +1,70 @@
+<!-- Header -->
+<div class="header">
+
+    <!-- Logo -->
+    {{ include('layout_common/logo.html.twig') }}
+    <!-- /Logo -->
+
+    <!-- Header Title -->
+    <div class="page-title-box float-left">
+        {{ include('layout_common/header_title.html.twig') }}
+    </div>
+    <!-- /Header Title -->
+
+    <!-- Header Menu -->
+    <ul class="nav user-menu">
+
+        <!-- Search -->
+{#        {{ dump(variable) }}#}
+        {% if variable is not defined %}
+            {% set variable = true %}
+        {% endif %}
+
+        {% if variable %}
+            {{ include('layout_common/search.html.twig') }}
+        {% endif %}
+        <!-- /Search -->
+
+        <!-- Flag -->
+{#        <li class="nav-item dropdown has-arrow flag-nav">#}
+{#            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button">#}
+{#                <img src="assets/img/flags/us.png" alt="" height="20"> <span>English</span>#}
+{#            </a>#}
+{#            <div class="dropdown-menu dropdown-menu-right">#}
+{#                <a href="javascript:void(0);" class="dropdown-item">#}
+{#                    <img src="assets/img/flags/us.png" alt="" height="16"> English#}
+{#                </a>#}
+{#                <a href="javascript:void(0);" class="dropdown-item">#}
+{#                    <img src="assets/img/flags/fr.png" alt="" height="16"> French#}
+{#                </a>#}
+{#                <a href="javascript:void(0);" class="dropdown-item">#}
+{#                    <img src="assets/img/flags/es.png" alt="" height="16"> Spanish#}
+{#                </a>#}
+{#                <a href="javascript:void(0);" class="dropdown-item">#}
+{#                    <img src="assets/img/flags/de.png" alt="" height="16"> German#}
+{#                </a>#}
+{#            </div>#}
+{#        </li>#}
+        <!-- /Flag -->
+
+        <li class="nav-item">
+            <a class="nav-link" href="{{path('app_login')}}">Se connecter</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{path('app_usager_register')}}">S'abonner</a>
+        </li>
+    </ul>
+    <!-- /Header Menu -->
+
+    <!-- Mobile Menu -->
+    <div class="dropdown mobile-user-menu">
+        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><i class="fa fa-ellipsis-v"></i></a>
+        <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="#">Se connecter</a>
+            <a class="dropdown-item" href="{{path('app_usager_register')}}">S'abonner</a>
+        </div>
+    </div>
+    <!-- /Mobile Menu -->
+
+</div>
+<!-- /Header -->

@@ -1,0 +1,192 @@
+{% extends 'layout_admin/layout.html.twig' %}
+{% block stylesheets %}
+    {{ parent() }}
+    <!-- Datatable CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap4.min.css') }}">
+
+    <!-- Select2 CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/select2.min.css') }}">
+
+    <!-- Datetimepicker CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css') }}">
+
+{#    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.13.1/datatables.min.css"/>#}
+{% endblock %}
+{% block title %}Profil{% endblock %}
+{% block page_content %}
+
+{% for message in app.flashes('success') %}
+<div class="alert alert-success">
+    {{ message }}
+</div>
+{% endfor %}
+    <div class="row">
+        <div class="col-md-12">
+        <div class="col-auto float-left ml-auto">
+          <a href="{{path('app_profil')}}" class="btn add-btn" data-toggle="modal" data-target="#add_plan"><i class="fa fa-plus"></i> Ajouter un Profil</a>
+          
+        </div>
+            <div class="table-responsive">
+                <table class="table table-striped custom-table mb-0" id="datatable">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Code</th>
+                        <th>Libellé</th>
+
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for a in profils %}
+                        <tr>
+                            <td>
+                                <strong>{{ a.id }}</strong>
+                            </td>
+                            <td >{{ a.code}}</td>
+                            <td >{{ a.libelle }}</td>
+
+                            <td class="text-center">
+                              <button onclick="getValue({{ a.id }},'{{a.libelle}}','{{a.code}}')" class="btn btn-sm btn-info edit1" id= "edit1" data-id="{{ a.code}}" data-toggle="modal" data-target="#edit_plan" ><i class="fa fa-edit"></i> Modifier</button>
+                              
+                              <a href="{{ path('app_profil_remove',{'id': a.id}) }}" class="btn btn-sm btn-danger"><i class="fa fa-trash"></i> Supprimer</a>
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+      
+     
+
+   
+
+    <!-- Add Plan Modal -->
+							<div class="modal custom-modal fade" id="add_plan" tabindex="-1" role="dialog" aria-hidden="true">
+								<div class="modal-dialog modal-md modal-dialog-centered">
+									<div class="modal-content">
+										<button type="button" class="close" data-dismiss="modal"><i class="fa fa-close"></i></button>
+										<div class="modal-body">
+											<h5 class="modal-title text-center mb-3">Ajouter un profil</h5>
+											{{ form_start(form,{'attr':{'class':'form-horizontal'}}) }}
+												<div class="row">
+													<div class="col-md-6">
+														<div class="form-group">
+															{{ form_label(form.code) }}
+                                                            {{ form_widget(form.code) }}
+														</div>
+													</div>
+													<div class="col-md-6">
+														<div class="form-group">
+                                                            {{ form_label(form.libelle) }}
+                                                            {{ form_widget(form.libelle) }}
+														</div>
+													</div>
+
+												</div>
+
+												<div class="m-t-20 text-center">
+													<button class="btn btn-primary submit-btn"  type="submit">Valider</button>
+												</div>
+                                                {{ form_end(form) }}
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- /Add Plan Modal -->
+
+                              
+
+
+
+                            <!-- Edit Plan Modal -->
+							<div class="modal custom-modal fade" id="edit_plan" role="dialog">
+								<div class="modal-dialog modal-md modal-dialog-centered">
+									<div class="modal-content">
+										<button type="button" class="close" data-dismiss="modal"><i class="fa fa-close"></i></button>
+										<div class="modal-body">
+											<h5 class="modal-title text-center mb-3">Modifier un profil</h5>
+                                           
+                                            <form action="/Profil/edit/{id}" method = "POST">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        
+                                                        <label for="html">Code du profil</label>
+                                                        <input class="form-control" name ="code" id="code" type="text" placeholder="ROLE_NOMPROFIL">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="html">libelle du profil</label>
+                                                        <input class="form-control" name="libelle" type="text" id="libelle">
+                                                        <input class="form-control" name ="id" type="hidden" id= "ident">
+                                                        
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="m-t-20 text-center">
+                                                <button class="btn btn-primary submit-btn" id = "btn-edit" type="submit">Valider</button>
+                                            </div>
+                                        </form>  
+										</div>
+									</div>
+								</div>
+							</div>
+							<!-- /Edit Plan Modal -->
+                        
+                             
+                             
+
+
+                            <script>
+
+                                function getValue(id,libelle,code) {
+                                    document.getElementById("ident").value = id
+                        
+                                    document.getElementById("libelle").value = libelle
+                                    document.getElementById("code").value = code
+                                   
+                                  
+                                }
+                               
+   
+                               
+                              </script>       
+
+                            
+                            
+{% endblock %}
+
+{% block end_javascripts %}
+    {{ parent() }}
+    <!-- Select2 JS -->
+    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
+
+    <!-- Datatable JS -->
+    <script src="{{ asset('assets/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/dataTables.bootstrap4.min.js') }}"></script>
+
+    <!-- Datetimepicker JS -->
+    <script src="{{ asset('assets/js/moment.min.js') }}"></script>
+    <script src="{{ asset('assets/js/bootstrap-datetimepicker.min.js') }}"></script>
+    <script>
+        // console.log($('.datatable').DataTable());
+        // if ( $.fn.dataTable.isDataTable( '.datatable' ) ) {
+        //     console.log("ssss");
+        // }
+            $('#datatable').DataTable( {
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.1/i18n/fr-FR.json"
+                }
+            } );
+    </script>
+
+{% endblock %}

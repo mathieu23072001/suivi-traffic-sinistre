@@ -1,0 +1,47 @@
+{% extends 'layout_admin/layout_without_sidebar.html.twig' %}
+{% block stylesheets %}
+    {{ parent() }}
+    <!-- Datatable CSS -->
+{#    <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap4.min.css') }}">#}
+
+    <!-- Select2 CSS -->
+{#    <link rel="stylesheet" href="{{ asset('assets/css/select2.min.css') }}">#}
+
+    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.6.0/dist/leaflet.css'/>
+
+    <!-- Datetimepicker CSS -->
+{#    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css') }}">#}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
+          integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+          crossorigin=""/>
+
+    {#    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.13.1/datatables.min.css"/> #}
+{% endblock %}
+{% block title %}Sinistre{% endblock %}
+{% block page_content %}
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    <!-- Main Wrapper -->
+    {% include 'sinistre/addSinistre.html.twig' %}
+
+
+
+    <!-- /Main Wrapper -->
+
+    </div>
+
+{% endblock %}
+
+
+{% block end_javascripts %}
+    {{ parent() }}
+{% endblock %}
+
+
+
+

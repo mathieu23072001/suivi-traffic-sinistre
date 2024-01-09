@@ -1,0 +1,118 @@
+{% extends 'layout_public/layout_without_header.html.twig' %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('custom/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
+          integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+          crossorigin=""/>
+{#    <link rel="stylesheet" href="{{ asset('custom/css/style.css') }}">#}
+{% endblock %}
+{% block title %}{% endblock %}
+{% block page_content %}
+    <div class="">
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <div class="account-content">
+                <div class="container">
+
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="">
+                                <div class="card-body">
+                                    <div class="change">
+
+                                            <h1 class="change3">LEMOLEO</h1>
+                                            <p class="change2">Profitez plus de votre plateforme de suivi de trafic et de
+                                                sinistre. Soyez informer en temps réel sur l'état du trafic en vous
+                                                inscrivant </p>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="card">
+
+                                <div class="account-wrapper">
+                                    <h3 class="account-title">Connexion</h3>
+                                    <p class="account-subtitle">Accéder à son espace</p>
+                                    <!-- Account Form -->
+                                    {% if error %}
+                                        <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                                    {% endif %}
+{#                                    {% for message in app.flashes('error') %}#}
+{#                                        <div class="alert alert-danger">#}
+{#                                            {{ message }}#}
+{#                                        </div>#}
+{#                                    {% endfor %}#}
+                                    <form action="{{ path('app_login') }}" method="post">
+                                        <div class="form-group">
+                                            <label for="username">Email</label>
+                                            <input class="form-control" type="email" id="username" name="_username"
+                                                   value="{{ last_username }}">
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="row">
+                                                <div class="col">
+                                                    <label for="password">Mot de passe</label>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <a class="text-muted" href="forgot-password.html">
+                                                        Mot de passe oublié?
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <input class="form-control" type="password" id="password" name="_password">
+                                        </div>
+                                        <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" name="_remember_me" checked/>
+                                            Remember me
+                                        </label>
+                                        </div>
+                                        <div class="form-group text-center">
+                                            <button class="btn btn-primary account-btn btn-block" type="submit">
+                                                Connexion
+                                            </button>
+                                        </div>
+                                        <div class="account-footer">
+                                            <p>N'avez-vous pas encore un compte? <a
+                                                        href="{{ path('app_usager_register') }}">S'abonner</a></p>
+                                        </div>
+                                        <input type="hidden" name="_csrf_token"
+                                               value="{{ csrf_token('authenticate') }}">
+                                    </form>
+
+                                    <!-- /Account Form -->
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /Main Wrapper -->
+
+    </div>
+{% endblock %}
+{% block end_javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
+            integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg="
+            crossorigin=""></script>
+    <script>
+    var map = L.map('map').setView([51.505, -0.09], 13);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    L.marker([51.5, -0.09]).addTo(map)
+    .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+    .openPopup();
+
+    </script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+{% block stylesheets %}
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
+
+    <!-- Fontawesome CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/font-awesome.min.css') }}">
+
+    <!-- Lineawesome CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/line-awesome.min.css') }}">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+{% endblock %}
+
+{% block body %}
+
+    {% block content %}
+        <div class="main-wrapper">
+            {% include 'layout_admin/header.html.twig' %}
+
+            {% include 'layout_admin/sidebar.html.twig' %}
+            <!-- Page Wrapper -->
+            <div class="page-wrapper">
+
+                <!-- Page Content -->
+                <div class="content container-fluid">
+
+                    <!-- Page Header -->
+{#                    <div class="page-header">#}
+{#                        <div class="row">#}
+{#                            <div class="col-sm-12">#}
+{#                                <h3 class="page-title">{% block title %} Blank Page {% endblock %}</h3>#}
+{#                                <ul class="breadcrumb">#}
+{#                                    {% block breadcrumb %}#}
+{#                                        <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>#}
+{#                                        <li class="breadcrumb-item active">Blank Page</li>#}
+{#                                    {% endblock %}#}
+{#                                </ul>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+                    <!-- /Page Header -->
+
+                    <!-- Content Starts -->
+                    {% block page_content %}
+                        Content Starts Here
+                    {% endblock %}
+                    <!-- /Content End -->
+
+                </div>
+                <!-- /Page Content -->
+
+            </div>
+            <!-- /Page Wrapper -->
+        </div>
+
+    {% endblock %}
+
+    {% block end_javascripts %}
+        <!-- jQuery -->
+        <script src="{{ asset('assets/js/jquery-3.5.1.min.js') }}"></script>
+
+        <!-- Bootstrap Core JS -->
+        <script src="{{ asset('assets/js/popper.min.js') }}"></script>
+        <script src="{{ asset('assets/js/bootstrap.min.js') }}"></script>
+
+        <!-- Slimscroll JS -->
+        <script src="{{ asset('assets/js/jquery.slimscroll.min.js') }}"></script>
+
+        <!-- Custom JS -->
+        <script src="{{ asset('assets/js/app.js') }}"></script>
+    {% endblock %}
+{% endblock %}

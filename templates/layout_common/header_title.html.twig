@@ -1,0 +1,5 @@
+{% if is_granted('ROLE_USER') %}
+    <h2>LEMOLEO</h2>
+{% else %}
+    <h2>LEMOLEO<span style="font-size: 1.275rem; color: #d44e0c; margin-left: 40px" > Suivi du trafic et des sinistres dans la ville de Lom&eacute;</span></h2>
+{% endif %}

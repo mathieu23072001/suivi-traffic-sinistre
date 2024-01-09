@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Map 3D with OSM and Three.js</title>
+    <style>
+      #map {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/build/three.min.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/loaders/MTLLoader.js"></script>
+    <script>
+      // Initialize Three.js scene
+      var scene = new THREE.Scene();
+      var camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        10000
+      );
+      camera.position.set(0, 0, 1000);
+      var renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // Add lighting to the scene
+      var ambientLight = new THREE.AmbientLight(0xffffff);
+      scene.add(ambientLight);
+      var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      directionalLight.position.set(0, 1, 1);
+      scene.add(directionalLight);
+
+      // Add controls to the camera
+      var controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.update();
+
+      // Load the OSM map as an OBJ file
+      var mtlLoader = new THREE.MTLLoader();
+      mtlLoader.setTexturePath('./');
+      mtlLoader.setPath('./');
+      mtlLoader.load('map.mtl', function (materials) {
+        materials.preload();
+        var objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials(materials);
+        objLoader.setPath('./');
+        objLoader.load('map.obj', function (object) {
+          scene.add(object);
+        });
+      });
+
+      // Render the scene
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+      animate();
+    </script>
+  </body>
+</html>

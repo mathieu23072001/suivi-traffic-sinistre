@@ -1,0 +1,409 @@
+{% extends 'layout_admin/layout_without_sidebar.html.twig' %}
+
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('custom/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
+          integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14="
+          crossorigin=""/>
+
+{% endblock %}
+
+{% block title %}Etat du trafic{% endblock %}
+
+{% block page_content %}
+
+   <a href="{{ path('app_sinistre_add', {typeDeclaration : "sini"}) }}"><button type="button" class="btn btn-danger"><i class="las la-exclamation-triangle"></i>Déclarer un sinistre</button></a>
+
+<a href="{{ path('app_sinistre_add', {typeDeclaration : "info"}) }}"><button type="button" class="btn btn-info"><i class="las la-info"></i>Déclarer une information utile</button></a>
+    <div id="map" style="height: 580px">
+    </div>
+{% endblock %}
+
+{% block end_javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
+            integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg="
+            crossorigin="">
+
+    </script>
+
+    <script type="text/javascript">
+
+/************************************FONCTIONS POUR LE CALCUL DE LA DISTANCE ****************************************/
+        function toRadian(degree) {
+            return degree*Math.PI/180;
+        }
+
+        function getDistance(Origin, destination) {
+            var lon1 = toRadian(Origin[1]),
+                lat1 = toRadian(Origin[0]),
+                lon2 = toRadian(destination[1]),
+                lat2 = toRadian(destination[0]);
+
+            var deltaLat = lat2 - lat1;
+            var deltaLon = lon2 - lon1;
+
+            var a = Math.pow(Math.sin(deltaLat/2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(deltaLon/2), 2);
+            var c = 2 * Math.asin(Math.sqrt(a));
+            var EARTH_RADIUS = 6371;
+            return c * EARTH_RADIUS * 1000;
+        }
+
+        let ville = ""
+        let dataSent = ""
+
+/************************************DECLARATION DU MAP ET GET POSITION COURANTE****************************************/
+        var map;
+        function recupPosition(x,y){
+        latitude = x;
+        longitude = y;
+    }
+
+    navigator.geolocation.getCurrentPosition((position) => {
+    recupPosition(position.coords.latitude, position.coords.longitude);
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+        map = L.map('map').setView([lat, lon], 14);
+    });
+    
+/***********************************************DEBUT DE DOCUMENT.READY***********************************************/
+        $(document).ready(function () {
+
+            var redIcon = new L.Icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+
+/*************************************ANCIEN CODE DE CHARGEMENT DE LA COUCHE OSM**************************************/
+            /**var map = L.map('map').setView([51.505, -0.09], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+                maxZoom: 18
+            }).addTo(map);*/
+
+/************************************AJOUT DE LA VUE SATELLITAIRE ET AUTRES VUES*************************************************************/
+		var baselayers = {
+                            OSM: L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png'),
+                            OSM_HOT : L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'),
+                            ESRI: L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'),
+                            OpenTopoMap : L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'),
+                            GoogleStreets : L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+                                            maxZoom: 20,subdomains:['mt0','mt1','mt2','mt3']}),
+                            GoogleSat : L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
+                                         maxZoom: 20,subdomains:['mt0','mt1','mt2','mt3']}),
+
+                        };
+
+		baselayers.OSM.addTo(map);
+
+        //Insertion de WMS comme couches
+		var Cadastre = L.tileLayer.wms('http://geobretagne.fr/geoserver/cadastre/wms', {layers: 'CP.CadastralParcel',format: 'image/png',transparent: true});
+		var Parcelbati = L.tileLayer.wms('http://mapsref.brgm.fr/wxs/refcom-brgm/refign',{layers: 'PARVEC_BATIMENT',format: 'image/png',transparent:true});
+           
+        //Centraliser les marqueurs
+        var marqueurs = {"": Cadastre, "": Parcelbati};
+        //Contrôler les marqueurs
+        //L.control.layers(baselayers, marqueurs, {collapsed:false}).addTo(map);
+        //Gestion des marqueurs centralisés
+        L.control.layers(baselayers, marqueurs, {collapsed : true, position : 'topright', }).addTo(map);
+
+/****************************************************AJOUT DE LA LEGENDE**********************************************************/
+        var legend = L.control({position: 'bottomright'});
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'legend');
+            div.innerHTML += '<h6>LEGENDE</h6><br>';
+            div.innerHTML += '<i style="background:#1e07fa"></i><span>Trafic normal - Vitesse moyenne</span><br>';//bleu
+            div.innerHTML += '<i style="background:#10f821"></i><span>Trafic fluide - Voie dégagée</span><br>';//vert
+            div.innerHTML += '<i style="background:#f8ed10"></i><span>Trafic serré- Voie occupée</span><br>';//jaune
+            div.innerHTML += '<i style="background:#fa0707"></i><span>Trafic saturé - Embouteillage</span><br>';//rouge
+
+            return div;
+        };
+        legend.addTo(map);	
+/************************************TRAITEMENT DES MARQUEURS DE SINISTRES*********************************************************************************/
+            // supprimerMarqueurs(map);
+            {% set dernier=null %}
+            {% for d in declarations %}
+            {% if d.isSinistre == true %}
+            L.marker([{{d.latitude}}, {{ d.longitude }}], {icon: redIcon}).addTo(map).bindPopup("" +
+                {% else %}
+                L.marker([{{d.latitude}}, {{ d.longitude }}]).addTo(map).bindPopup("" +
+                {% endif %}
+                "<div class='card' style='width: 10rem;'>"+
+                    {% if d.image != null %}
+                "<img alt='sinistre' class='card-img-top' src="+"{{ asset('assets/uploads/images/mini/300x300-') ~ d.image.fileName }}"+" />" +
+                    {% endif %}
+                "<div class='like-container'><span class='like-icon fa {{ app.user in d.likes ? 'fa-thumbs-up' : 'fa-thumbs-o-up' }}' data-url='{{ path('like.sinistre', {'id': d.id}) }}'></span>"+
+                "<span class='like-count'> {{ d.howManyLikes }} </span> Confirmer"+
+                "<span class='dislike-icon fa {{ app.user in d.dislikes ? 'fa-thumbs-down' : 'fa-thumbs-o-down' }}' data-url='{{ path('dislike.sinistre', {'id': d.id}) }}'></span>"+
+                "<span class='dislike-count'> {{ d.howManyDislikes }} </span> Infirmer</div>"+
+                "<div class='card-body'><p class='card-text'><a href='{{ path('app_sinistre_details' , {id : d.id})}}'>{{ d.lieu }}</a></p></div>");
+            {% set dernier = d %}
+            {% endfor %}
+            {% if dernier != null %}
+            {#            {{ dump(dernier) }}#}
+            var center = [{{ dernier.latitude }}, {{ dernier.longitude }}]; // coordonnées du point à centrer
+            var zoomLevel = 13; // niveau de zoom souhaité
+
+            map.setView(center, zoomLevel);
+            {#L.map('map').setView([{{dernier.latitude}}, {{ dernier.longitude }}], 18);#}
+
+            {% endif %}
+
+
+            const eventSource = new EventSource("{{ mercure('ping')|escape('js') }}");
+            eventSource.onmessage = event => {
+                dataSent = JSON.parse(event.data);
+                let position = dataSent.position;
+                //L.marker([position.latitude, position.longitude]).addTo(map).bindPopup(position.lieu).openPopup();
+            }
+
+            const eventSourceSinistre = new EventSource("{{ mercure('sinistre')|escape('js') }}");
+            eventSourceSinistre.onmessage = event => {
+                dataSent = JSON.parse(event.data);
+                let sinistres = dataSent.sinistre;
+                // supprimerMarqueurs(map);
+                for (var i = 0; i<sinistres.length; i++)
+                {
+                    // traficRayon(donnee[i][1], donnee[i][0]);
+                    L.marker([sinistres[i].latitude, sinistres[i].longitude]).addTo(map).bindPopup(sinistres[i].lieu,  {closeOnClick: false, autoClose: false}).openPopup();
+                }
+                // L.marker([sinistre.latitude, sinistre.longitude]).addTo(map).bindPopup(sinistre.lieu).openPopup();
+                // L.map('map').setView([sinistre.latitude, sinistre.longitude], 13);
+            }
+
+            {#var map = L.map('map').setView([{{ position.latitude }}, {{ position.longitude }}], {{ position.zoom }});#}
+            // L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            //     maxZoom: 50,
+            //     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            // }).addTo(map);
+            {#L.marker([{{ position.latitude }}, {{ position.longitude }}]).addTo(map).bindPopup('{{ position.lieu }}').openPopup();#}
+
+
+            // Gestion des champs
+            let cVille = document.getElementById('chamville');
+            cVille.addEventListener("change", function () {
+                // On envoie le requête ajax vers Nominatim
+                console.log(this.value);
+
+                ajaxGet(`https://nominatim.openstreetmap.org/search?q=${this.value}&format=json&addressdetails=1&limit=1&polygon_svg=1`)
+                    .then(reponse => {
+                        // On convertit la réponse en objet Javascript
+
+                        let data = JSON.parse(reponse)
+
+                        // On stocke les coordonnées dans ville
+                        ville = [data[0].lat, data[0].lon]
+
+                        // On centre la carte sur la ville
+                        map.panTo(ville)
+
+                    })
+
+
+            });
+
+/************************************FONCTION UTILISEE POUR LE TRACE DU TRAFIC****************************************/
+
+        /*Fonction pour le tracé du trafic*/
+        function traceTrafic(tab, vitesse) { 
+            /** #fa0707 = rouge
+                #1e07fa = bleu
+                #f8ed10 = jaune
+                #10f821 = vert
+            */
+                if(vitesse < 17){
+                    var trace = L.polyline(tab, {color: '#fa0707', weight: 8}).addTo(map);
+                }else if(vitesse < 22){
+                    var trace = L.polyline(tab, {color: '#1e07fa', weight: 8}).addTo(map);
+                }else if(vitesse < 25){
+                    var trace = L.polyline(tab, {color: '#f8ed10', weight: 8}).addTo(map);
+                }else{
+                    var trace = L.polyline(tab, {color: '#10f821', weight: 8}).addTo(map);
+                }
+            map.fitBounds(trace.getBounds());
+		}
+
+/************************************INSERTION DE DONNES STATIQUES DE TRAFIC*********************************************/
+        //Boulevard Eyadema en partant du bar 3K jusqu'à l'entrée GTA
+        var trace1 =[[6.165293, 1.222719],
+                    [6.166157, 1.222343],
+                    [6.168682, 1.221211],
+                    [6.170265, 1.220499],
+                    [6.171636, 1.219826],
+                    [6.172952, 1.219153],
+                    [6.174000, 1.218609],
+                    [6.175081, 1.218026],
+                    [6.176424, 1.217331],
+                    [6.177467, 1.216748],
+                    [6.178999, 1.215968],
+                    [6.180103, 1.215397],
+                    [6.182188, 1.214399],
+                    [6.184166, 1.213440],
+                    [6.186881, 1.212145],
+                    [6.189679, 1.210928],
+                    [6.191931, 1.209852]
+                    ];
+        //Rond point GTA
+        var trace2 =[[6.191601, 1.210041],
+                    [6.191951, 1.209838],
+                    [6.192389, 1.209636],
+                    [6.192836, 1.209574],
+                    [6.193178, 1.209565],
+                    [6.193519, 1.209574],
+                    [6.193835, 1.209530],
+                    [6.194133, 1.209521],
+                    [6.194317, 1.209371]
+                    ];
+        //Supermarché Concorde vers Avénou
+        var trace3 =[[6.166684, 1.201875],
+                    [6.167580, 1.201403],
+                    [6.168519, 1.200717],
+                    [6.169458, 1.199429],
+                    [6.169799, 1.198185],
+                    [6.170226, 1.194580],
+                    [6.170695, 1.192134],
+                    [6.172828, 1.187499],
+                    [6.174364, 1.183980]
+                    ];
+        //Du rond-point Colombe vers stade Kégué
+        var trace4 =[[6.149615, 1.230084],
+                    [6.150740, 1.230084],
+                    [6.151613, 1.229807],
+                    [6.152657, 1.229281],
+                    [6.153610, 1.228721],
+                    [6.155223, 1.227832],
+                    [6.156251, 1.227335],
+                    [6.157393, 1.226671],
+                    [6.157870, 1.226342],
+                    [6.160264, 1.225095],
+                    [6.161670, 1.224414],
+                    [6.162922, 1.223721],
+                    [6.165046, 1.222918],
+                    [6.165373, 1.223727],
+                    [6.165803, 1.225020],
+                    [6.166268, 1.226925],
+                    [6.166992, 1.229604],
+                    [6.167267, 1.230147],
+                    [6.167537, 1.230771],
+                    [6.167732, 1.231423],
+                    [6.167968, 1.232214],
+                    [6.168392, 1.232861],
+                    [6.168725, 1.234206],
+                    [6.168829, 1.234709],
+                    [6.170252, 1.234651],
+                    [6.170838, 1.234628],
+                    [6.171177, 1.234616],
+                    [6.172658, 1.234564],
+                    [6.175298, 1.234414],
+                    [6.178214, 1.234264],
+                    [6.179299, 1.234189],
+                    [6.182606, 1.235124],
+                    [6.185413, 1.236129],
+                    [6.188926, 1.236833],
+                    [6.191750, 1.237688],
+                    [6.194878, 1.238693],
+                    [6.198282, 1.239859],
+                    [6.202656, 1.241418]
+                    ];
+        //Boulevard du Haho
+        var trace5 =[[6.201741, 1.248580],
+                    [6.195354, 1.245965],
+                    [6.189093, 1.243364],
+                    [6.182062, 1.240426],
+                    [6.181154, 1.240173],
+                    [6.179630, 1.240285],
+                    [6.172628, 1.240960]
+                    ];
+        //Avénou vers Adidogomé
+        var trace6 =[[6.176893, 1.178493],
+                    [6.180189, 1.172747],
+                    [6.187680, 1.163643],
+                    [6.196534, 1.153566],
+                    [6.204794, 1.143798],
+                    [6.213648, 1.133412]
+                    ];
+        //Supermarché Concorde vers GTA
+        var trace7 =[[6.166620, 1.202238],
+                    [6.168800, 1.202864],
+                    [6.170274, 1.203222],
+                    [6.172294, 1.203722],
+                    [6.174083, 1.204157],
+                    [6.175781, 1.204586],
+                    [6.177633, 1.205043],
+                    [6.179073, 1.205437],
+                    [6.180932, 1.205915],
+                    [6.182826, 1.206343],
+                    [6.184692, 1.206885],
+                    [6.187137, 1.207503],
+                    [6.189087, 1.207932],
+                    [6.191142, 1.208459]
+                    ];
+
+/************************************AFFICHAGE DU TRACE****************************************/
+                    traceTrafic(trace1, 25.0);
+                    traceTrafic(trace2, 5.0);
+                    traceTrafic(trace3, 30.0);
+                    traceTrafic(trace4, 20.0);
+                    traceTrafic(trace5, 2.0);
+                    traceTrafic(trace6, 23.0);
+                    traceTrafic(trace7, 17.0);
+
+            // var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+            map.fitBounds(polyline.getBounds());
+
+            map.setView([{{ position.latitude }}, {{ position.longitude }}], {{ position.zoom }});
+
+        });
+
+
+        /**
+         * Cette fonction effectue un appel Ajax vers une url et retourne une promesse
+         * @param {string} url
+         */
+
+        function ajaxGet(url) {
+            return new Promise(function (resolve, reject) {
+                // Nous allons gérer la promesse
+                let xmlhttp = new XMLHttpRequest()
+
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4) {
+                        if (xmlhttp.status == 200) {
+                            // On "résoud" la promesse
+                            resolve(xmlhttp.response)
+                        } else {
+                            reject(xmlhttp)
+                        }
+                    }
+                }
+
+                xmlhttp.onerror = function (error) {
+                    reject(error)
+                }
+
+                xmlhttp.open('get', url, true)
+                xmlhttp.send()
+            })
+        }
+        function supprimerMarqueurs(map) {
+            // Récupère tous les marqueurs de la carte
+            var marqueurs = map.getLayers().filter(function(layer) {
+                return layer instanceof L.Marker;
+            });
+
+            // Supprime chaque marqueur de la carte
+            for (var i = 0; i < marqueurs.length; i++) {
+                map.removeLayer(marqueurs[i]);
+            }
+        }
+
+    </script>
+
+{% endblock %}

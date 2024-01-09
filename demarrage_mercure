@@ -1,0 +1,8 @@
+Ouvrir le terminal dans le dossier de mercure et passer la commande suivante :
+
+./mercure --jwt-key='!ChangeMe!' --addr='localhost:3000' --allow-anonymous --cors-allowed-origins='*'
+
+Sous windows
+$env:MERCURE_PUBLISHER_JWT_KEY='!ChangeMe!'; $env:MERCURE_SUBSCRIBER_JWT_KEY='!ChangeMe!'; .\mercure.exe run --config Caddyfile.dev
+
+https://github.com/dunglas/mercure/releases

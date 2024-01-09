@@ -1,0 +1,47 @@
+<div class="card">
+    <div class="card-body">
+        <h2>Commentaires</h2>
+        {% for comment in a.comments %}
+            <div class="comment">
+                <p><strong>{{ comment.author }}</strong> - {{ comment.date }}</p>
+                <p>{{ comment.text }}</p>
+                <div class="actions">
+                    <a href="#"><i class="fa fa-lg fa-edit text-primary" aria-hidden="true"></i></a>
+                    <a href="#"><i class="fa fa-lg fa-trash text-danger" aria-hidden="true"></i></a>
+                    <a href="#comment-form-{{ comment.id }}" data-toggle="collapse" aria-expanded="false" aria-controls="comment-form-{{ comment.id }}"><i class="fa fa-reply text-primary" aria-hidden="true"></i> Répondre</a>
+                </div>
+                <div class="reply-form collapse" id="comment-form-{{ comment.id }}">
+                    <form action="#" method="POST">
+                        <div class="form-group">
+                            <label for="reply">Réponse</label>
+                            <textarea class="form-control" id="reply" name="reply" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Envoyer</button>
+                    </form>
+                </div>
+                {% for reply in comment.replies %}
+                    <div class="reply">
+                        <p><strong>{{ reply.author }}</strong> - {{ reply.date }}</p>
+                        <p>{{ reply.text }}</p>
+                        <div class="actions">
+                            <a href="#"><i class="fa fa-lg fa-edit text-primary" aria-hidden="true"></i></a>
+                            <a href="#"><i class="fa fa-lg fa-trash text-danger" aria-hidden="true"></i></a>
+                            <a href="#comment-form-{{ comment.id }}" data-toggle="collapse" aria-expanded="false" aria-controls="comment-form-{{ comment.id }}"><i class="fa fa-reply text-primary" aria-hidden="true"></i> Répondre</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <!-- Ajouter un commentaire -->
+        <div class="add-comment">
+            <h3>Ajouter un commentaire</h3>
+            <form action="#" method="POST">
+                <div class="form-group">
+                    <label for="comment">Commentaire</label>
+                    <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            </form>
+        </div>
+    </div>
+</div>

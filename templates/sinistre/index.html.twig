@@ -1,0 +1,132 @@
+{% extends 'layout_admin/layout.html.twig' %}
+{% block stylesheets %}
+    {{ parent() }}
+    <!-- Datatable CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap4.min.css') }}">
+
+    <!-- Select2 CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/select2.min.css') }}">
+
+    <!-- Datetimepicker CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css') }}">
+
+{#    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.13.1/datatables.min.css"/>#}
+{% endblock %}
+{% block title %}Sinistres{% endblock %}
+{% block page_content %}
+
+{% for message in app.flashes('success') %}
+<div class="alert alert-success">
+    {{ message }}
+</div>
+{% endfor %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="col-auto float-left ml-auto">
+{#                <a href="{{path('app_sinistre_add')}}" class="btn add-btn" ><i class="fa fa-plus"></i> Ajouter une déclaration</a>#}
+                <a href="{{ path('app_sinistre_add', {typeDeclaration : "sini"}) }}"><button type="button" class="btn btn-danger"><i class="las la-exclamation-triangle"></i>Déclarer un sinistre</button></a>
+
+                <a href="{{ path('app_sinistre_add', {typeDeclaration : "info"}) }}"><button type="button" class="btn btn-info"><i class="las la-info"></i>Déclarer une information utile</button></a>
+
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped custom-table mb-0" id="datatable">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Photos</th>
+                        <th>Type</th>
+
+                        <th>Libelle</th>
+                        
+                        <th>Date</th>
+                        <th>Abonné</th>
+                        <th>Lieu</th>
+                        <th>Type</th>
+                        <th>Publié</th>
+                        <th>Date de publication</th>
+                        <th>Action</th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for a in declarations %}
+                        <tr>
+                            <td>
+                                <strong>{{ a.id }}</strong>
+                            </td>
+                            <td>
+                                {% for image in a.images %}
+                                <div class="carousel-item {{ (loop.first ) ? 'active' : '' }}">
+                                    <img src="{{ asset('assets/uploads/images/mini/300x300-') ~ image.fileName }}" class="d-block w-100" alt="{{ a.libelle }}">
+                                </div>
+                                 {% endfor %}
+
+                            </td>
+                            <td>{{ a.type }}</td>
+                            <td>{{ a.libelle }}</td>
+                            <td>{{ a.dateDeclaration | date('d-m-Y h:i:s') }}</td>
+                            <td>{{ a.utilisateur.nomPrenoms }}</td>
+                            <td>{{ a.lieu }}</td>
+                            <td>{{ a.typeSinistre.libelle | default("") }}</td>
+                            <td>
+                                <div class="dropdown action-label">
+                                    {% if a.published %}
+                                    <a class="btn btn-white btn-sm btn-rounded dropdown-toggle" href="#" data-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa fa-dot-circle-o text-success"></i> Publié
+                                    </a>
+                                    {% else %}
+                                        <a class="btn btn-white btn-sm btn-rounded dropdown-toggle" href="#" data-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa fa-dot-circle-o text-danger"></i> Non Publiée
+                                        </a>
+                                    {% endif %}
+                                    <div class="dropdown-menu">
+                                        {% if a.published %}
+                                            <a class="dropdown-item" href="{{ path('app_sinistre_desactive', {id : a.id}) }}"><i class="fa fa-dot-circle-o text-danger"></i> Dépublié</a>
+                                        {% else %}
+                                            <a class="dropdown-item" href="{{ path('app_sinistre_active', {id : a.id}) }}"><i class="fa fa-dot-circle-o text-success"></i> Publié</a>
+                                        {% endif %}
+
+
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ a.datePublication | date('d-m-Y h:i:s') }}</td>
+                            <td class="text-center">
+                                <a href="{{ path('app_sinistre_details' , {id : a.id})}}" class="btn add-btn" ><i class="fa fa-plus"></i> Detail</a>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block end_javascripts %}
+    {{ parent() }}
+    <!-- Select2 JS -->
+    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
+
+    <!-- Datatable JS -->
+    <script src="{{ asset('assets/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/dataTables.bootstrap4.min.js') }}"></script>
+
+    <!-- Datetimepicker JS -->
+    <script src="{{ asset('assets/js/moment.min.js') }}"></script>
+    <script src="{{ asset('assets/js/bootstrap-datetimepicker.min.js') }}"></script>
+    <script>
+        // console.log($('.datatable').DataTable());
+        // if ( $.fn.dataTable.isDataTable( '.datatable' ) ) {
+        //     console.log("ssss");
+        // }
+            $('#datatable').DataTable( {
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.1/i18n/fr-FR.json"
+                }
+            } );
+    </script>
+
+{% endblock %}

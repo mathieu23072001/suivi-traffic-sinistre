@@ -1,0 +1,320 @@
+
+<div class="row">
+    <div class="col-8 text-center">
+        <div class="card-body">
+            <div id="map" style="height:350px; width:100%;"></div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <div class="table table-striped custom-table mb-0" id="datatable">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Libelle</th>
+                            <th>Date</th>
+                            <th>Lieu</th>
+                            {% if typeDeclaration == "sini" %}
+                            <th>Type</th>
+                            {% endif %}
+                            <th>Publié</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for a in sinistres %}
+                            <tr>
+                                <td>
+                                    <strong>
+                                        {{ a.id }}
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ a.libelle }}
+                                </td>
+                                <td>
+                                    {{ a.dateDeclaration | date('d-m-Y h:i:s') }}
+                                </td>
+                                <td>
+                                    {{ a.lieu }}
+                                </td>
+                                {% if typeDeclaration == "sini" %}
+                                <td>
+                                    {{ a.typeSinistre.libelle }}
+                                </td>
+                                {% endif %}
+                                <td>
+                                    {% if a.published==true %}
+                                    <span class="badge badge-pill badge-success">Oui</span>
+                                    {% else %}
+                                        <span class="badge badge-pill badge-danger">Non</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ path('app_sinistre_edit',{'id': a.id}) }}">
+                                        <i class="fa fa-lg fa-edit text-primary" aria-hidden="true"></i>
+                                    </a>
+                                    <a href="{{ path('app_sinistre_remove',{'id': a.id}) }}">
+                                        <i class="fa fa-lg fa-trash text-danger" aria-hidden="true"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="">
+            <div class="card">
+                <div class="account-wrapper">
+                    <div class="account-title">
+                        {% if typeDeclaration == "sini" %}
+                        Sinistre informations
+                            {% else %}
+                        Information utile
+                        {% endif %}
+
+                    </div>
+                    <!-- Account Form -->
+                    {{ form_start(form,{'attr':{'class':'form-horizontal' }}
+                    ) }}
+
+
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                {{ form_label(form.lieu) }}
+                                {{ form_widget(form.lieu,{'attr': {'id': 'sinistre_lieu'} }) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_widget(form.latitude,{'attr': {'id': 'sinistre_latitude'} }) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_widget(form.longitude,{'attr': {'id': 'sinistre_longitude'} }) }}
+                            </div>
+                            {% if typeDeclaration == "sini" %}
+                            <div class="form-group">
+                                {{ form_label(form.typeSinistre) }}
+                                {{ form_widget(form.typeSinistre) }}
+                            </div>
+                            {% endif %}
+                            <div class="form-group">
+                                {{ form_label(form.description) }}
+                                {{ form_widget(form.description) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_label(form.images) }}
+                                {{ form_widget(form.images,{'attr': {'id': 'sinistre_images','accept':'image/*'} }) }}
+                            </div>
+                            <div class="form-group">
+                                <video id="video" width="270" height="200"></video>
+                                <div class="row">
+                                    <div class="col-6 float-left"><button id="captureButton" disabled type="button" class="btn btn-info" style="position: relative; float: left;">
+                                    Capture
+
+                                    </button></div>
+                                <div class="col-6 float-right"><button class="btn btn-success float-right" id="startButton" type="button" style="position: relative; float: right;">
+                                    Start Webcam
+
+                                </button></div>
+                                </div>
+                                <canvas id="canvas" width="270" height="200"></canvas>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group text-left">
+                        <button class="btn btn-primary account-btn btn-block" type="submit">
+                            Envoyer
+
+
+                        </button>
+                    </div>
+                    {{ form_end(form) }}
+                    <script src='https://unpkg.com/leaflet@1.6.0/dist/leaflet.js'></script>
+                    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
+                            integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg="
+                            crossorigin=""></script>
+                    <script type="text/javascript">
+                        var idLieu="";
+                        var idLatitude="";
+                        var idLongitude="";
+                        {% if typeDeclaration == "sini" %}
+                             idLieu="sinistre_lieu";
+                             idLatitude="sinistre_latitude";
+                             idLongitude="sinistre_longitude";
+                        {% else %}
+                            idLieu="information_utile_lieu";
+                            idLatitude="information_utile_latitude";
+                            idLongitude="information_utile_longitude";
+                        {% endif %}
+
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(function(position) {
+                                const latitude = position.coords.latitude;
+                                const longitude = position.coords.longitude;
+                                console.log(`Latitude : ${latitude}, Longitude : ${longitude}`);
+                                const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+                                var map = L.map('map').setView([latitude,longitude], 15);
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                }).addTo(map);
+
+                                fetch(nominatimUrl)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        const displayName = data.display_name;
+                                        document.getElementById("sinistre_lieu").value = displayName;
+                                        document.getElementById("sinistre_latitude").value = latitude;
+                                        document.getElementById("sinistre_longitude").value = longitude;
+                                    })
+                                    .catch(error => {
+                                        console.log(`Erreur lors de la récupération des informations de localisation : ${error}`);
+                                    });
+
+
+                            }, function(error) {
+                                console.log(`Erreur de géolocalisation : ${error.message}`);
+                            });
+                        } else {
+                            console.log('La géolocalisation n\'est pas prise en charge par ce navigateur');
+                        }
+                        console.log(idLatitude, idLongitude);
+                        document.getElementById(idLatitude).style.display = "none";
+                        document.getElementById(idLongitude).style.display = "none";
+
+
+
+
+                        var map = L.map('map').setView([6.131944, 1.222778], 13);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        }).addTo(map);
+                        map.on('click', function (e) {
+                            var lat = e.latlng.lat;
+                            var lon = e.latlng.lng;
+                            var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lon;
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('GET', url);
+                            xhr.send();
+                            xhr.onreadystatechange = function () {
+                                if (xhr.readyState === 4 && xhr.status === 200) {
+                                    var data = JSON.parse(xhr.responseText);
+                                    var localite = data.name;
+                                    console.log(localite);
+                                    // Set the value of the input field
+                                    document.getElementById(idLieu).value = localite;
+                                    document.getElementById(idLatitude).value = lat;
+                                    document.getElementById(idLongitude).value = lon;
+                                }
+                            };
+                        });
+
+
+                    </script>
+
+
+                    <script type="text/javascript">
+
+                        var video = document.querySelector("#video");
+                        var canvas = document.querySelector("#canvas");
+                        var captureButton = document.querySelector("#captureButton");
+                        var startButton = document.querySelector("#startButton");
+                        var isCameraOn = false;
+                        var mediaStream;
+                        var inputFile = document.querySelector("#sinistre_images");
+
+                        function startCamera() {
+
+                            navigator.mediaDevices.getUserMedia({ video: true })
+                                .then(function(stream) {
+                                    video.srcObject = stream;
+                                    video.play();
+                                    startButton.innerHTML = "Stop Webcam";
+                                    //startButton.disabled = true;
+                                    captureButton.disabled = false;
+                                    isCameraOn = true;
+                                    mediaStream = stream;
+                                })
+                                .catch(function(err) {
+                                    console.log("An error occurred: " + err);
+                                });
+                        }
+
+
+                        // Fonction pour désactiver la caméra
+                        function stopCamera() {
+                            video.pause();
+                            video.srcObject = null;
+                            mediaStream.getTracks()[0].stop();
+                            startButton.innerHTML = "Start Webcam";
+                            captureButton.disabled = true;
+                            isCameraOn = false;
+                        }
+
+                        // Activer la caméra lors du clic sur le bouton
+                        startButton.addEventListener("click", function() {
+                            if (!isCameraOn) {
+                                startCamera();
+                            } else {
+                                stopCamera();
+                            }
+                        });
+
+
+
+
+                        captureButton.addEventListener("click", function() {
+                            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+                            var image = canvas.toDataURL();
+                            //console.log(image);
+
+
+
+                            var imgData = image.replace(/^data:image\/(png|jpg);base64,/, ""); // Remove data URL header
+                            var fileName = "capture_" + Date.now() + ".png"; // Set default file name with current timestamp
+                           
+                           
+                     var file = new File([imgData], fileName, {type: 'image/png'}); // Create a file object from the captured image
+
+                   
+                            console.log(file);
+                            // var newFileList = new DataTransfer();
+                            //  newFileList.items.add(file);
+                            // inputFile.files = newFileList.files;
+
+                            // Création d'un nouvel objet DataTransfer
+                            var newFileList = new DataTransfer();
+
+// Boucle sur tous les fichiers actuellement présents dans l'élément input file
+                            for (var i = 0; i < inputFile.files.length; i++) {
+                                var file = inputFile.files[i];
+                                // Ajout de chaque fichier existant à l'objet DataTransfer
+                                newFileList.items.add(file);
+                            }
+
+// Ajout du nouvel objet File à l'objet DataTransfer
+                            newFileList.items.add(file);
+
+// Définition de la nouvelle liste de fichiers dans l'élément input file
+                            inputFile.files = newFileList.files;
+
+
+
+
+
+
+                        });
+
+                    </script>
+                    <!-- /Account Form -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

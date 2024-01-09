@@ -1,0 +1,113 @@
+
+<div class="container mt-5">
+ 
+    <div class="row">
+        <div class="col-md-6">
+            
+            <h1>Détails de l'information</h1> 
+        
+           
+            <div style="text-align: right;">          
+            {% if app.user %}
+                <div class="like-container">
+                    {% set isLiked = a.isLikedByUser(app.user) %}
+                    <span class="like-icon fa {{ app.user in a.likes ? 'fa-thumbs-up' : 'fa-thumbs-o-up' }}"
+                        data-url="{{ path('like.sinistre', {'id': a.id}) }}"></span>
+                    <span class="like-count"> {{ a.howManyLikes() }} </span> Confirmer
+
+                    {% set isDisliked = a.isDislikedByUser(app.user) %}
+                    <span class="dislike-icon fa {{ app.user in a.dislikes ? 'fa-thumbs-down' : 'fa-thumbs-o-down' }}"
+                    data-url="{{ path('dislike.sinistre', {'id': a.id}) }}"></span>
+                    <span class="dislike-count"> {{ a.howManyDislikes() }} </span> Infirmer
+                </div>
+            {% else %}
+                <p>Connectez-vous pour liker ou disliker ce sinistre</p>
+            {% endif %}
+
+           
+            </div>
+            {% if a.published == 1  %}
+                 <p>Statut: <span style="color:blue;">Publié</span>! </p>
+   
+               {% else   %}
+                    <p>Statut: <span style="color:red;"> Non Publié</span>!  </p>
+               {% endif %}
+            <hr />
+            <h3>Date de publication</h3>
+            <p>{{ a.datePublication | date('d-m-Y h:i:s') }}</p>
+            <h3>Libellé</h3>
+            <p>{{ a.libelle }}</p>
+            <h3>Description</h3>
+            <p>
+                {{ a.description }}
+            </p>
+            <h3>Lieu</h3>
+            <p>{{ a.lieu }}</p>
+        
+          <hr>
+          
+    <div class="card">
+    <div class="card-body">
+        <h2>Commentaires</h2>
+        {% for comment in a.comments %}
+            <div class="comment">
+                <p><strong>{{ comment.utilisateurs.email }}</strong> - {{ comment.createdAt | date("d-m-Y H:i:s") }}</p>
+                <p>{{ comment.content }}</p>
+                <div class="actions">
+{#                    <a href="#"><i class="fa fa-lg fa-edit text-primary" aria-hidden="true"></i></a>#}
+                    <a href="{{ path('app_sinistre_commentaire_delete', {id:comment.id}) }}"><i class="fa fa-lg fa-trash text-danger" aria-hidden="true"></i></a>
+                    <a href="#comment-form-{{ comment.id }}" data-toggle="collapse" aria-expanded="false" aria-controls="comment-form-{{ comment.id }}"><i class="fa fa-reply text-primary" aria-hidden="true"></i> Répondre</a>
+                </div>
+                <div class="reply-form collapse" id="comment-form-{{ comment.id }}">
+                    <form action="{{ path('app_sinistre_reply', {id : comment.id}) }}" method="POST">
+                        <div class="form-group">
+                            <label for="reply">Réponse</label>
+                            <textarea class="form-control" id="reply" name="reply" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Envoyer</button>
+                    </form>
+                </div>
+{#                {{ dump(comment.replies | length) }}#}
+                {% for reply in comment.replies %}
+                    <div class="reply">
+                        <p><strong>{{ reply.utilisateurs.email }}</strong> - {{ reply.createdAt | date("d-m-Y H:i:s") }}</p>
+                        <p>{{ reply.content }}</p>
+                        <div class="actions">
+{#                            <a href="#"><i class="fa fa-lg fa-edit text-primary" aria-hidden="true"></i></a>#}
+                            <a href="{{ path('app_sinistre_commentaire_delete', {id:comment.id}) }}"><i class="fa fa-lg fa-trash text-danger" aria-hidden="true"></i></a>
+                            <a href="#comment-form-{{ comment.id }}" data-toggle="collapse" aria-expanded="false" aria-controls="comment-form-{{ comment.id }}"><i class="fa fa-reply text-primary" aria-hidden="true"></i> Répondre</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <!-- Ajouter un commentaire -->
+        <div class="add-comment">
+            <h3>Ajouter un commentaire</h3>
+            <form action="{{ path('app_sinistre_commentaire', {id : a.id}) }}" method="POST">
+                <div class="form-group">
+                    <label for="comment">Commentaire</label>
+                    <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+        
+
+    </div>
+        <div class="col-md-6">
+            <h3>Images</h3>
+            {% for image in a.images %}
+                <div class="card">
+                    <img class="card-img-top" src="{{ asset('assets/uploads/images/mini/300x300-') ~ image.fileName }}" alt="Image 1" />
+                    <div class="card-body">
+                        <p class="card-text">{{ a.libelle }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>

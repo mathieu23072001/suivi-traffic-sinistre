@@ -1,0 +1,10 @@
+{% if is_granted('ROLE_USER') %}
+<div class="header-left">
+{% else %}
+    <div class="header-left" style="width: 55px">
+{% endif %}
+
+    <a href="{{path('app_acceuil')}}" class="logo">
+        <img src="{{ asset('assets/img/logo.png') }}" width="40" height="40" alt="">
+    </a>
+</div>

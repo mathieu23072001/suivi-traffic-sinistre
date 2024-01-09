@@ -1,0 +1,88 @@
+{% extends 'layout_admin/layout.html.twig' %}
+{% block stylesheets %}
+
+	{{ parent() }}
+    <!-- Datatable CSS -->
+    {#    <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap4.min.css') }}">#}
+    <!-- Select2 CSS -->
+    {#    <link rel="stylesheet" href="{{ asset('assets/css/select2.min.css') }}">#}
+    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.6.0/dist/leaflet.css' /> <!-- Datetimepicker CSS -->
+    {#    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css') }}">#}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" /> {#    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.13.1/datatables.min.css"/> #}
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="{{asset('assets/css/galerie.css')}}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-KtFDMRwR+CcW8kK72Zhe0zrcpM3dtxgn3/sB/bDrgRG+a4EKy4kY4bWJh/HxHx5G5ZgS5f5J9X1+tUrQa0Kjw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  
+{% endblock %}
+{% block title %}
+   
+{% endblock %}
+{% block page_content %}
+
+  {% include 'sinistre/details.html.twig' %}
+
+
+
+
+{% endblock %}
+
+{% block end_javascripts %}
+  
+	{{ parent() }}
+
+  <script>
+    $(document).ready(function() {
+        $('.like-icon').click(function() {
+            var icon = $(this);
+            var url = icon.data('url');
+           
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(data) {
+                  
+                    if (data.message == 'Le like a été ajouté.') {
+                        icon.removeClass('fa-thumbs-o-up').addClass('fa-thumbs-up');
+                    } else {
+                        icon.removeClass('fa-thumbs-up').addClass('fa-thumbs-o-up');
+                    }
+                    icon.parent().find('.like-count').text(data.nbLike);
+                },
+                error: function() {
+                    alert('Une erreur est survenue ');
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('.dislike-icon').click(function() {
+            var icon = $(this);
+            var url = icon.data('url');
+            
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(data) {
+                  
+                    if (data.message == 'Le dislike a été ajouté.') {
+                        icon.removeClass('fa-thumbs-o-down').addClass('fa-thumbs-down');
+                    } else {
+                        icon.removeClass('fa-thumbs-down').addClass('fa-thumbs-o-down');
+                    }
+                    icon.parent().find('.dislike-count').text(data.nbDislike);
+                },
+                error: function() {
+                    alert('Une erreur est survenue');
+                }
+            });
+        });
+    });
+</script>
+
+
+
+	{% endblock %}

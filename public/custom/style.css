@@ -1,0 +1,119 @@
+.thumbnail-declaration {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    width: 150px;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+}
+
+.bg {
+    /* The image used */
+    background-image: url("../images/circulation.jpg");
+
+    /* Full height */
+    /*height: 100%;*/
+
+    /* Center and scale the image nicely */
+    /*background-position: center;*/
+    /*background-repeat: no-repeat;*/
+    /*background-size: cover;*/
+
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-position: center center;;
+    /*background-image: url('https://placekitten.com/1200/800');*/
+    background-size: cover;
+}
+
+.bg::before{
+    content: "";
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    background-color: rgba(0,0,0,0.5);
+}
+.change{
+    color: white;
+    font-size: 6.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+.change2{
+    color: white;
+    font-size: 2.25rem;
+    font-weight: 300;
+}
+.change3{
+    color: white;
+    font-size: 4.25rem;
+    font-weight: 300;
+    line-height: 1.2;
+}
+
+.info{
+    line-height: 18px;
+    color: #555;
+    border: 3px blue solid;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+.info h3{
+    position:absolute; 
+    right:25%; 
+    font-weight:bold; 
+    color:blue
+}
+
+.info h4{
+    color: #d44e0c;
+    /*color:rgba(255, 140, 0, 0.875);*/
+}
+    
+.legend{
+   	width: 220px;
+   	height: 30px;
+    position: absolute;
+    right: 0px;
+   	bottom: 65px; 
+}
+
+.legend h6{
+    position:absolute; 
+    text-align: center;
+    right:30%; 
+    font-weight:bold; 
+    text-decoration: underline;
+    color: #d44e0c;
+    /*color:rgba(255, 140, 0, 0.875);*/
+    opacity: 1.8; 
+}
+
+.legend i{
+    width: 28px;
+    height: 10px;
+    float : left;
+    margin: 0 8px 0 0;
+    opacity: 1.0; 
+}
+
+.legend span{
+    color: #d44e0c;
+    opacity: 1.8; 
+    font-weight:bold; 
+}

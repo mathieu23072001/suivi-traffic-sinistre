@@ -1,0 +1,98 @@
+{% extends 'layout_admin/layout.html.twig' %}
+{% block stylesheets %}
+    {{ parent() }}
+    <!-- Datatable CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/dataTables.bootstrap4.min.css') }}">
+
+    <!-- Select2 CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/select2.min.css') }}">
+
+    <!-- Datetimepicker CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datetimepicker.min.css') }}">
+
+{#    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.13.1/datatables.min.css"/>#}
+{% endblock %}
+{% block title %}Abonnements{% endblock %}
+{% block page_content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table table-striped custom-table mb-0" id="datatable">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nom</th>
+                        <th>Prénoms</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for a in abonnements %}
+                        <tr>
+                            <td>
+                                <strong>{{ a.id }}</strong>
+                            </td>
+                            <td>{{ a.nom }}</td>
+                            <td>{{ a.prenoms }}</td>
+                            <td>{{ a.email }}</td>
+                            <td>{{ a.telephone }}</td>
+                            <td class="text-center">
+                                <div class="dropdown action-label">
+                                    {% if a.abonnementActif %}
+                                    <a class="btn btn-white btn-sm btn-rounded dropdown-toggle" href="#" data-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa fa-dot-circle-o text-success"></i> Active
+                                    </a>
+                                    {% else %}
+                                        <a class="btn btn-white btn-sm btn-rounded dropdown-toggle" href="#" data-toggle="dropdown" aria-expanded="false">
+                                            <i class="fa fa-dot-circle-o text-danger"></i> Inactive
+                                        </a>
+                                    {% endif %}
+                                    <div class="dropdown-menu">
+                                        {% if a.abonnementActif %}
+                                            <a class="dropdown-item" href="{{ path('app_abonnement_desactive', {id : a.id}) }}"><i class="fa fa-dot-circle-o text-danger"></i> Inactive</a>
+                                        {% else %}
+                                            <a class="dropdown-item" href="{{ path('app_abonnement_active', {id : a.id}) }}"><i class="fa fa-dot-circle-o text-success"></i> Active</a>
+                                        {% endif %}
+
+
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block end_javascripts %}
+    {{ parent() }}
+    <!-- Select2 JS -->
+    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
+
+    <!-- Datatable JS -->
+    <script src="{{ asset('assets/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/dataTables.bootstrap4.min.js') }}"></script>
+
+    <!-- Datetimepicker JS -->
+    <script src="{{ asset('assets/js/moment.min.js') }}"></script>
+    <script src="{{ asset('assets/js/bootstrap-datetimepicker.min.js') }}"></script>
+    <script>
+        // console.log($('.datatable').DataTable());
+        // if ( $.fn.dataTable.isDataTable( '.datatable' ) ) {
+        //     console.log("ssss");
+        // }
+            $('#datatable').DataTable( {
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.1/i18n/fr-FR.json"
+                }
+            } );
+    </script>
+
+{% endblock %}
+
+
